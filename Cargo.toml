@@ -1,0 +1,19 @@
+[package]
+name = "dot-tar"
+version = "0.0.1"
+authors = [ "Lin Yinfeng <lin.yinfeng@outlook.com>" ]
+edition = "2018"
+description = "A tiny web server converting files to singleton tar files"
+homepage = "https://github.com/linyinfeng/dot-tar"
+repository = "https://github.com/linyinfeng/dot-tar"
+license = "MIT"
+publish = false
+
+[dependencies]
+log = "*"
+rocket = "0.5.0-rc.1"
+tokio = "*"
+async-tar = "*"
+reqwest = "*"
+bytes = "*"
+serde = { version = "*", features = ["derive"] }
