@@ -3,16 +3,16 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     utils.url = "github:numtide/flake-utils";
     naersk.url = "github:nmattia/naersk";
-    rust-overlays.url = "github:oxalica/rust-overlay";
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, utils, naersk, rust-overlays }:
+  outputs = { self, nixpkgs, utils, naersk, rust-overlay }:
     let name = "dot-tar"; in
     (utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ rust-overlays.overlay ];
+          overlays = [ rust-overlay.overlay ];
         };
 
         rust = pkgs.rust-bin.nightly.latest.default.override {
