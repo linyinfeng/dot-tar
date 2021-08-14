@@ -1,14 +1,14 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    utils.url = "github:numtide/flake-utils";
+    flake-utils.url = "github:numtide/flake-utils";
     naersk.url = "github:nmattia/naersk";
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, utils, naersk, rust-overlay }:
+  outputs = { self, nixpkgs, flake-utils, naersk, rust-overlay }:
     let name = "dot-tar"; in
-    (utils.lib.eachDefaultSystem (system:
+    (flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -39,7 +39,7 @@
         };
         defaultPackage = packages.${name};
 
-        apps.${name} = utils.lib.mkApp {
+        apps.${name} = flake-utils.lib.mkApp {
           drv = packages.${name};
         };
         defaultApp = apps.${name};
