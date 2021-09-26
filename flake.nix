@@ -1,42 +1,43 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    let name = "dot-tar"; in
-    (flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-        };
-      in
-      rec {
-        packages.${name} = pkgs.callPackage ./dot-tar.nix { };
-        defaultPackage = packages.${name};
+  outputs = inputs@{ self, nixpkgs, flake-utils-plus }:
+    let
+      utils = flake-utils-plus.lib;
+    in
+    utils.mkFlake {
+      inherit self inputs;
 
-        apps.${name} = flake-utils.lib.mkApp {
-          drv = packages.${name};
-        };
-        defaultApp = apps.${name};
+      channels.nixpkgs.input = nixpkgs;
+      outputsBuilder = channels:
+        let
+          pkgs = channels.nixpkgs;
+        in
+        rec {
+          packages.dot-tar = pkgs.callPackage ./dot-tar.nix { };
+          defaultPackage = packages.dot-tar;
 
-        devShell = pkgs.mkShell {
-          packages = with pkgs; [
-            rustup
-            pkg-config
-            openssl
-          ];
+          apps.dot-tar = utils.mkApp {
+            drv = packages.dot-tar;
+          };
+          defaultApp = apps.dot-tar;
+
+          devShell = pkgs.mkShell {
+            packages = with pkgs; [
+              rustup
+              pkg-config
+              openssl
+            ];
+          };
         };
 
-        checks = packages;
-      }))
-    //
-    rec {
       nixosModules = {
         dot-tar = import ./modules/services/dot-tar.nix;
       };
-      overlay = overlays.dot-tar;
+      overlay = self.overlays.dot-tar;
       overlays = {
         dot-tar = final: prev: {
           dot-tar = self.packages.${final.system}.dot-tar;

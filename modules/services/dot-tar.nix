@@ -6,9 +6,11 @@ let
   cfgFile =
     if cfg.configFile != null
     then cfg.configFile
-    else pkgs.runCommand "dot-tar.toml" {
-      buildInputs = [ pkgs.remarshal ];
-    } ''
+    else
+      pkgs.runCommand "dot-tar.toml"
+        {
+          buildInputs = [ pkgs.remarshal ];
+        } ''
         remarshal -if json -of toml \
           < ${pkgs.writeText "dot-tar.json" (builtins.toJSON cfg.config)} \
           > $out
