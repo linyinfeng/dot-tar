@@ -2,41 +2,18 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    naersk.url = "github:nmattia/naersk";
-    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, flake-utils, naersk, rust-overlay }:
+  outputs = { self, nixpkgs, flake-utils }:
     let name = "dot-tar"; in
     (flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ rust-overlay.overlay ];
         };
-
-        rust = pkgs.rust-bin.nightly.latest.default.override {
-          extensions = [ "rust-src" ];
-        };
-        naersk-lib = naersk.lib."${system}".override {
-          cargo = rust;
-          rustc = rust;
-        };
-
-        buildInputs = with pkgs; [
-          openssl
-        ];
-        nativeBuildInputs = with pkgs; [
-          pkg-config
-        ];
       in
       rec {
-        packages.${name} = naersk-lib.buildPackage {
-          pname = name;
-          root = ./.;
-
-          inherit buildInputs nativeBuildInputs;
-        };
+        packages.${name} = pkgs.callPackage ./dot-tar.nix { };
         defaultPackage = packages.${name};
 
         apps.${name} = flake-utils.lib.mkApp {
@@ -45,9 +22,10 @@
         defaultApp = apps.${name};
 
         devShell = pkgs.mkShell {
-          inherit buildInputs nativeBuildInputs;
           packages = with pkgs; [
             rustup
+            pkg-config
+            openssl
           ];
         };
 
