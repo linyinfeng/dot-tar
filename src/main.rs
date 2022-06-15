@@ -99,7 +99,7 @@ async fn main() {
         .mount("/", routes![index])
         .attach(AdHoc::config::<Config>());
     match rkt.launch().await {
-        Ok(()) => (),
+        Ok(_r) => (),
         Err(e) => println!("{}", e),
     }
 }
