@@ -1,6 +1,8 @@
 /target
 
 /.direnv
+/.envrc
+/shell.nix
 /result*
 
 /.vscode

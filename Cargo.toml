@@ -11,9 +11,13 @@ publish = false
 
 [dependencies]
 log = "*"
-rocket = "0.5.0-rc"
+rocket = "0.5.0-rc.2"
 tokio = "*"
 async-tar = "*"
 reqwest = "*"
 bytes = "*"
+futures = "*"
 serde = { version = "*", features = ["derive"] }
+async-compression = { version = "*", features = ["futures-io", "all-algorithms"] }
+once_cell = "*"
+maplit = "*"
