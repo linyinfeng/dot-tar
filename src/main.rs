@@ -1,5 +1,9 @@
+use async_compression::futures::write as encoders;
 use bytes::Bytes;
+use futures::AsyncWrite;
 use futures::AsyncWriteExt;
+use maplit::btreemap;
+use once_cell::sync::Lazy;
 use rocket::fairing::AdHoc;
 use rocket::http::ContentType;
 use rocket::response::Responder;
@@ -10,15 +14,11 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::io;
 use std::path::PathBuf;
-use once_cell::sync::Lazy;
-use maplit::btreemap;
-use futures::AsyncWrite;
-use async_compression::futures::write as encoders;
 
 #[derive(Debug, Clone)]
 enum ArchiveType {
     None,
-    Tar
+    Tar,
 }
 
 impl Default for ArchiveType {
@@ -59,7 +59,7 @@ enum CompressionType {
     Bzip2,
     Gzip,
     Xz,
-    Zstd
+    Zstd,
 }
 
 impl Default for CompressionType {
@@ -98,36 +98,50 @@ impl CompressionType {
     }
 }
 
-trait Encoder : AsyncWrite {
+trait Encoder: AsyncWrite {
     fn buffer(&self) -> &[u8];
 }
 
 impl Encoder for encoders::BrotliEncoder<Vec<u8>> {
-    fn buffer(&self) -> &[u8] { self.get_ref() }
+    fn buffer(&self) -> &[u8] {
+        self.get_ref()
+    }
 }
 impl Encoder for encoders::BzEncoder<Vec<u8>> {
-    fn buffer(&self) -> &[u8] { self.get_ref() }
+    fn buffer(&self) -> &[u8] {
+        self.get_ref()
+    }
 }
 impl Encoder for encoders::GzipEncoder<Vec<u8>> {
-    fn buffer(&self) -> &[u8] { self.get_ref() }
+    fn buffer(&self) -> &[u8] {
+        self.get_ref()
+    }
 }
 impl Encoder for encoders::XzEncoder<Vec<u8>> {
-    fn buffer(&self) -> &[u8] { self.get_ref() }
+    fn buffer(&self) -> &[u8] {
+        self.get_ref()
+    }
 }
 impl Encoder for encoders::ZstdEncoder<Vec<u8>> {
-    fn buffer(&self) -> &[u8] { self.get_ref() }
+    fn buffer(&self) -> &[u8] {
+        self.get_ref()
+    }
 }
 
-static ARCHIVE_TYPES: Lazy<BTreeMap<&'static str, ArchiveType>> = Lazy::new(|| btreemap!{
-    ".tar" => ArchiveType::Tar,
+static ARCHIVE_TYPES: Lazy<BTreeMap<&'static str, ArchiveType>> = Lazy::new(|| {
+    btreemap! {
+        ".tar" => ArchiveType::Tar,
+    }
 });
 
-static COMPRESSION_TYPES: Lazy<BTreeMap<&'static str, CompressionType>> = Lazy::new(|| btreemap!{
-    ".br" => CompressionType::Brotli,
-    ".bz2" => CompressionType::Bzip2,
-    ".gz" => CompressionType::Gzip,
-    ".xz" => CompressionType::Xz,
-    ".zst" => CompressionType::Zstd,
+static COMPRESSION_TYPES: Lazy<BTreeMap<&'static str, CompressionType>> = Lazy::new(|| {
+    btreemap! {
+        ".br" => CompressionType::Brotli,
+        ".bz2" => CompressionType::Bzip2,
+        ".gz" => CompressionType::Gzip,
+        ".xz" => CompressionType::Xz,
+        ".zst" => CompressionType::Zstd,
+    }
 });
 
 #[rocket::get("/healthcheck")]
@@ -181,7 +195,10 @@ async fn index(
     Ok((content_type, compressed))
 }
 
-fn extract_suffix<'a, T: Default + Clone>(path: &'a str, map: &BTreeMap<&'static str, T>) -> (&'a str, T) {
+fn extract_suffix<'a, T: Default + Clone>(
+    path: &'a str,
+    map: &BTreeMap<&'static str, T>,
+) -> (&'a str, T) {
     let mut result_path = None;
     let mut result_type = None;
 
@@ -190,12 +207,15 @@ fn extract_suffix<'a, T: Default + Clone>(path: &'a str, map: &BTreeMap<&'static
             Some(stripped) => {
                 result_path = Some(stripped);
                 result_type = Some(ty.clone())
-            },
-            None => continue
+            }
+            None => continue,
         }
     }
 
-    (result_path.unwrap_or(path), result_type.unwrap_or(Default::default()))
+    (
+        result_path.unwrap_or(path),
+        result_type.unwrap_or(Default::default()),
+    )
 }
 
 fn content_type(a: ArchiveType, c: CompressionType) -> ContentType {
@@ -206,7 +226,7 @@ fn content_type(a: ArchiveType, c: CompressionType) -> ContentType {
         (_, CompressionType::Gzip) => ContentType::GZIP,
         (_, CompressionType::Xz) => ContentType::new("application", "x-xz"),
         (_, CompressionType::Zstd) => ContentType::new("application", "zstd"),
-        (_, _) => ContentType::Binary
+        (_, _) => ContentType::Binary,
     }
 }
 
