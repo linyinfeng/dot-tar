@@ -130,6 +130,9 @@ static COMPRESSION_TYPES: Lazy<BTreeMap<&'static str, CompressionType>> = Lazy::
     ".zst" => CompressionType::Zstd,
 });
 
+#[rocket::get("/healthcheck")]
+async fn healthcheck() {}
+
 #[rocket::get("/<scheme>/<authority>/<path..>?<query..>")]
 async fn index(
     config: &State<Config>,
@@ -229,7 +232,7 @@ fn reqwest_error(e: reqwest::Error) -> Error {
 #[rocket::main]
 async fn main() {
     let rkt = rocket::build()
-        .mount("/", routes![index])
+        .mount("/", routes![healthcheck, index])
         .attach(AdHoc::config::<Config>());
     match rkt.launch().await {
         Ok(_r) => (),
